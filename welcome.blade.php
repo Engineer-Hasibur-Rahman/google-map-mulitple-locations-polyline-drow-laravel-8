@@ -1,5 +1,5 @@
 <?php
-define("API_KEY", "AIzaSyAzcJgxprqCjNZnhIs_bUpTNbpOZx_Kl6w");
+define("API_KEY", "your-api-key");
 ?>
 <html>
 <head>
