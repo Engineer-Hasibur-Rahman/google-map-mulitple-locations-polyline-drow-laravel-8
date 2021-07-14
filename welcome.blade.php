@@ -5,6 +5,9 @@ define("API_KEY", "your-api-key");
 <head>
 <title>How to draw route Path on Map using Google Maps Direction API in PHP | Tutorialswebsite</title>
 <style>
+.gm-style-iw.gm-style-iw-c {
+    width: 345px !important;
+}
 #mapCanvas {
     width: 100%;
     height: 650px;
@@ -86,8 +89,8 @@ body,
 			<div class="map_wrap">
 				<div class="siderbarmap">
 					<ul>
-						<input id="wialonCheckbox" type="checkbox" onclick="toggleGroup('Wialon')" checked="checked" style="margin-right:.3rem;" />Wialon
-						<input id="omnitracsCheckbox" type="checkbox" onclick="toggleGroup('Omnitracs')" checked="checked" style="margin-right:.3rem;" />Omnitracs
+						<input id="wialonCheckbox" type="checkbox" onclick="toggleGroup('Wialon')" checked="checked" style="margin-right:.3rem;" />Wialon Trailors
+						<input id="omnitracsCheckbox" type="checkbox" onclick="toggleGroup('Omnitracs')" checked="checked" style="margin-right:.3rem;" />Omnitracs Trucks
 					</ul>
 				</div>
 			</div>
@@ -117,7 +120,7 @@ for( i = 0; i < markers.length; i++ ) {
 	xmlMarkers += '<marker name="" lat="'+markers[i][1]+'" lng="'+markers[i][2]+'" type="'+markers[i][3]+'" unit="'+markers[i][4]+'" />';
 }
 
-//var xmlData = '<markers> '+ xmlMarkers +'</markers>';
+var xmlData = '<markers> '+ xmlMarkers +'</markers>';
 
 var markerGroups = {
 		"Wialon": [],
@@ -127,7 +130,7 @@ var infoWindow = new google.maps.InfoWindow();
 
 var publicpath = "<?php echo $publicpath;?>";
 
-function initMap() 
+function initMap()
 {
 	var map;
 	var bounds = new google.maps.LatLngBounds();
@@ -166,7 +169,7 @@ function initMap()
 
 		map.fitBounds(bounds);
 	}
-	var xmlData = '<markers> '+ xmlMarkers +'</markers>';
+	//var xmlData = '<markers> '+ xmlMarkers +'</markers>';
 	var xml = xmlParse(xmlData);
 	var markers = xml.documentElement.getElementsByTagName("marker");
 	for (var i = 0; i < markers.length; i++) 
@@ -175,7 +178,6 @@ function initMap()
 		var lati = markers[i].getAttribute("lat");
 		var longi = markers[i].getAttribute("lng");
 		var unitno = markers[i].getAttribute("unit");
-
 		var point = new google.maps.LatLng(
 			parseFloat(
 				markers[i].getAttribute("lat")
@@ -255,7 +257,13 @@ function createMarker(point, type, map, lat, longi, unitno)
 
 	if (!markerGroups[type]) markerGroups[type] = [];
 	markerGroups[type].push(marker);
-	bindInfoWindow(marker, map, infoWindow);
+	marker.addListener("click", () => {
+		infowindow.open({
+			anchor: marker,
+			map,
+			shouldFocus: false,
+		});
+	});
 	
 	return marker;
 }
@@ -277,7 +285,6 @@ function toggleGroup(type)
 
 function bindInfoWindow(marker, map, infoWindow) 
 {
-
 	marker.addListener("click", () => {
 		infowindow.open({
 			anchor: marker,
@@ -368,18 +375,58 @@ function polyline(json)
 }
 
 function infoBox(map, marker, data) {
+	var geocoder;
     var infoWindow = new google.maps.InfoWindow();
-	var html = '<div class="infowindow scrollFix"> <div class="row"><div class="row col-md-12"><div class="col-md-4"><strong>Unit Number:</strong> </div><div class="col-md-4">'+data.unit_number+'</div></div><div class="row col-md-12"><div class="col-md-4"><strong>Latitude: </strong></div><div class="col-md-4">'+data.latitude+'</div></div><div class="row col-md-12"><div class="col-md-4"><strong>Longitude: </strong></div><div class="col-md-4">'+data.longitude+'</div></div></div></div>';
-    google.maps.event.addListener(marker, "click", function(e) {
-        infoWindow.setContent(html);
-		infoWindow.open(map, marker);
-    });
+	var cityshortname;
+	var citylongname;
+	var latlng = new google.maps.LatLng(data.latitude, data.longitude);
+	geocoder = new google.maps.Geocoder();
+    geocoder.geocode({'latLng': latlng}, function(results, status) 
+	{
+		if (status == google.maps.GeocoderStatus.OK) 
+		{
+			console.log(results)
+			if (results[1]) 
+			{
+				citylongname = results[0].formatted_address;
+				console.log(results[0].formatted_address);
+				for (var i=0; i<results[0].address_components.length; i++) 
+				{
+					for (var b=0;b<results[0].address_components[i].types.length;b++) 
+					{
+						if (results[0].address_components[i].types[b] == "administrative_area_level_1") 
+						{
+							city= results[0].address_components[i];
+							break;
+						}
+					}
+				}
+				//city data
+				//citylongname = city.long_name;
+				//cityshortname = city.short_name;
+			}else{
+				citylongname = "No Address Found";
+			}
+		} else {
+			citylongname  = "Geocoder failed due to: " + status;
+		}
+		var newtime = getMyFormatDate(data.time);
+		var html = '<div class="infowindow scrollFix"> <div class="row"><div class="row col-md-12"><div class="col-md-4"><strong>Unit Number:</strong> </div><div class="col-md-4">#'+data.unit_number+'</div></div><div class="row col-md-12"><div class="col-md-4"><strong>Time:</strong> </div><div class="col-md-4">'+newtime+'</div></div><div class="row col-md-12"><div class="col-md-4"><strong>Address:</strong> </div><div class="col-md-4">'+citylongname+'</div></div><div class="row col-md-12"><div class="col-md-4"><strong>Latitude: </strong></div><div class="col-md-4">'+data.latitude+'</div></div><div class="row col-md-12"><div class="col-md-4"><strong>Longitude: </strong></div><div class="col-md-4">'+data.longitude+'</div></div></div></div>';
+		google.maps.event.addListener(marker, "click", function(e) 
+		{
+			infoWindow.setContent(html);
+			infoWindow.open(map, marker);
+		});
 
-    (function(marker, data) {
-      google.maps.event.addListener(marker, "click", function(e) {
-        salta(data.tm);
-      });
-    })(marker, data);
+		(function(marker, data) 
+		{
+			google.maps.event.addListener(marker, "click", function(e) 
+			{
+				infoWindow.setContent(html);
+			});
+		})(marker, data);
+	
+	});
 }
 
 function infoPoly(map, flightPath, data) {
@@ -413,6 +460,14 @@ function infoPoly(map, flightPath, data) {
     google.maps.event.trigger(mk,'click');
   });
 }
+
+function getMyFormatDate(date) {
+			var date = new Date(date);
+           var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+           var hours = date.getHours();
+           var ampm = hours >= 12 ? 'PM' : 'AM';
+           return months[date.getMonth()] + ' ' + date.getDate() + " " + date.getFullYear() + ' ' + hours + ':' + date.getMinutes() + ' ' + ampm;
+       }
 </script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=<?php echo API_KEY; ?>&libraries=geometry&callback=initMap"></script>
 <div id="map"></div>
