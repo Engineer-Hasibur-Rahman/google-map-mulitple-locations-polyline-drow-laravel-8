@@ -638,5 +638,5 @@ jQuery(document).ready(function($)
 });
 </script>
 
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAzcJgxprqCjNZnhIs_bUpTNbpOZx_Kl6w&libraries=geometry&callback=initMap"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=yourkeylibraries=geometry&callback=initMap"></script>
 @stop
