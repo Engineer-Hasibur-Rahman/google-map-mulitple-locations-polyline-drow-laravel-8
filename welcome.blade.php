@@ -11,7 +11,7 @@
 @section('content')
 <style type="text/css">
 #adminmenu{
-width:100%;
+    width:100%;
 }
 .gm-style-iw.gm-style-iw-c {
     width: 345px !important;
@@ -109,7 +109,22 @@ div#showdaterange {
     font-weight: bold;
     opacity: 0.8;
     font-style: italic;
-    font-size: 1.4rem;
+    font-size: 14px;
+}
+div#showdaterange > .form-group > input {
+    border-radius: 0.35rem;
+    height: 46px;
+}
+.historySection{
+    position: absolute;
+    right: 15px;
+    top: 10.2em;
+    z-index: 99999999999;
+    background: #0000007a;
+    width: 18%;
+    padding: .70rem;
+    color: #f9f9f9;
+    border-radius: 5px;
 }
 </style>
 
@@ -118,11 +133,15 @@ div#showdaterange {
 <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
 
 <?php $publicpath = URL::to('/public/');?>
+
 <div class="page-content browse container-fluid">
         <div class="row">
             <div class="col-md-12">			
                 <div class="panel panel-bordered">
                    <div class="cont">
+                        <!--<div id="history_popup" class="historySection">
+                            <p>History</p>
+                        </div>-->
                     	<div class="row mapoptions">
                     		<div class="col-md-12" styloe="margin:0 !important;">
                     		    <div class="row">
@@ -136,8 +155,9 @@ div#showdaterange {
                             			<?php
                             				foreach($locations as $location)
                             				{
+                            				    
                             					?>
-                            					<option value="<?=$location->company;?>" data-lat="<?=$location->latitude?>" data-long="<?=$location->longitude?>"><?=$location->unit_number?></option>
+                            					<option value="<?=$location->company;?>" data-last-location-time="<?=$location->last_location_time?>" data-lat="<?=$location->latitude?>" data-long="<?=$location->longitude?>"><?=$location->unit_number?></option>
                             					<?php 
                             				}
                             			?>
@@ -187,7 +207,6 @@ div#showdaterange {
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 @stop
 
@@ -202,6 +221,8 @@ jQuery('#resetmap').on('click',function(ev)
 });
 
 $('#trailers').select2({placeholder: "Select Unit",dropdownAutoWidth : true,width: '100%'});
+
+//var markers = [ <?php // echo $markers;?> ];
 
 var markers = [
 	<?php /* if($num_rows > 0)
@@ -240,16 +261,18 @@ function initMap()
 	map = new google.maps.Map(document.getElementById("mapCanvas"), mapOptions);
 	map.setTilt(50);
 		
+	//var markers = [ <?php // echo $markers;?> ];
+	
 	var markers = [
-		<?php /* if($num_rows > 0)
-		{ */
-			foreach($locations as $location)
-			{
-				echo '["", '.$location->latitude.', '.$location->longitude.', "'.$location->company.'", "'.$location->unit_number.'"],';
-			}
-		//}
-		?>
-	];
+    	<?php /* if($num_rows > 0)
+    	{ */
+    		foreach($locations as $location)
+    		{
+    			echo '["", '.$location->latitude.', '.$location->longitude.', "'.$location->company.'", "'.$location->unit_number.'"],';
+    		}
+    	//}
+    	?>
+    ];
 	
 	var infoWindow = new google.maps.InfoWindow(), marker, i;
 
@@ -285,7 +308,7 @@ function initMap()
 				markers[i].getAttribute("lng")
 			)
 		);
-
+        
 		var marker = createMarker(point, type, map, lati, longi,unitno);
 		marker.setMap(map);
 	}
@@ -312,6 +335,10 @@ function initMap()
 			dataType:'json',
 			success : function(json) 
 			{
+			    if ( json.length == 0 ) {
+                    alert("NO DATA!");
+                    return false;
+                }
 			    $("#loadinstatus").hide('slow');
 			    $("#mapCanvas").css("opacity", "1");
 			    $("#showdaterange").show('slow');
@@ -325,7 +352,7 @@ function initMap()
 		var latlng = new google.maps.LatLng(latitude, longitude);
 
 		map.setCenter(latlng);
-		smoothZoom(map, 23, map.getZoom());
+		smoothZoom(map, 28, map.getZoom());
 	});
 	
 	$('input[name="daterange"]').on('apply.daterangepicker', function(ev, picker) 
@@ -350,6 +377,12 @@ function initMap()
 			dataType:'json',
             success:function(json)
             {
+                if ( json.length == 0 ) {
+                    $("#loadinstatus").text('Sorry, no data found in this date range!');
+                    $("#mapCanvas").css("opacity", "0.3");
+			        $("#showdaterange").show('slow');
+			        return false;
+                }
                 $("#loadinstatus").hide('slow');
 			    $("#mapCanvas").css("opacity", "1");
 			    $("#showdaterange").show('slow');
@@ -365,7 +398,9 @@ function initMap()
 
 function createMarker(point, type, map, lat, longi, unitno)
 {
-	var contentString = 'Unit Number:' + unitno + '<br /> Latitude:' + lat + '<br /> Longitude:' + longi;
+    var contentString;
+    
+	contentString = 'Unit Number:' + unitno + '<br /> Latitude:' + lat + '<br /> Longitude:' + longi;
 	var infowindow = new google.maps.InfoWindow({
 		content: contentString,
 	});
@@ -453,18 +488,20 @@ function smoothZoom (map, max, cnt) {
 		});
 		setTimeout(function(){map.setZoom(cnt)}, 80);
 	}
-} 
+}
  
 function polyline(json) 
 {
-	var pinColor = "FE7569";
-	var pinImage = new google.maps.MarkerImage("http://labs.google.com/ridefinder/images/mm_20_red.png" + pinColor,
-    new google.maps.Size(14, 21),
-    new google.maps.Point(0,0),
-    new google.maps.Point(10, 21));
+	var pinColor = "#000000";
+	var pinImage = new google.maps.MarkerImage(
+	    "http://labs.google.com/ridefinder/images/mm_20_red.png" + pinColor,
+        new google.maps.Size(100, 100),
+        new google.maps.Point(0,0),
+        new google.maps.Point(10, 21)
+    );
     var mapOptions = {
         center: new google.maps.LatLng(json[0].latitude, json[0].longitude),
-        zoom: 16,
+        zoom: 19,
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
     map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
@@ -472,116 +509,86 @@ function polyline(json)
     var myTrip = new Array();
     const lineSymbol = {
         path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-      };
+    }
     var val = Math.floor(1000 + Math.random() * 9000);
 	for (var i = 0, length = json.length; i < length; i++)
 	{
-		var data = json[i];
+	    var data = json[i];
+	    var dbicon = data.company;
 		var t = data.latitude;
 		var lng = data.longitude;
 		var latLng = new google.maps.LatLng(t, lng);
 		myTrip.push(latLng);
-		var marker = new google.maps.Marker({
-			position: latLng,
-			map: map,
-			icon: lineSymbol,
-			title: data.latitude,
-			offset:'100%'
-		});
-		infoBox(map, marker, data);
-		var flightPath = new google.maps.Polyline({
-            path: myTrip,
-            strokeColor: "#0000FF",
-            strokeOpacity: 1.0,
-            strokeWeight: 4
-        });
-		infoPoly(map, flightPath, data);
+	    if (i == 0)
+	    {
+	        console.log("Location: " + data.address + ", Last Location Time: " + data.time);
+	        var marker = new google.maps.Marker({
+    			position: latLng,
+    			strokeColor: "#000000",
+                strokeOpacity: 1.0,
+                strokeWeight: 2,
+                geodesic: true,
+                map: map,
+    			icon: '<?php echo $publicpath;?>/'+data.company+'.png',
+    			title: data.latitude,
+    			offset:'100%'
+    		});
+    		infoBox(map, marker, data);
+    		var flightPath = new google.maps.Polyline({
+                path: myTrip,
+                strokeColor: "#FF0000",
+                strokeOpacity: 1.0,
+                strokeWeight: 3,
+                icon: '<?php echo $publicpath;?>/'+data.company+'.png',
+                offset: '100%'
+            });
+    		infoPoly(map, flightPath, data);
+	       
+	    }else{
+    		var marker = new google.maps.Marker({
+    			position: latLng,
+    			strokeColor: "#000000",
+                strokeOpacity: 1.0,
+                strokeWeight: 2,
+                geodesic: true,
+                map: map,
+    			icon: lineSymbol,
+    			title: data.latitude,
+    			offset:'100%'
+    		});
+    		infoBox(map, marker, data);
+    		var flightPath = new google.maps.Polyline({
+                path: myTrip,
+                strokeColor: "#FF0000",
+                strokeOpacity: 1.0,
+                strokeWeight: 3,
+                icon: lineSymbol,
+                offset: '100%'
+            });
+    		infoPoly(map, flightPath, data);
+	    }
 	}
     
     flightPath.setMap(map);
 }
 
-function infoBox(map, marker, data) {
-	var geocoder;
+function infoBox(map, marker, data) 
+{
+    var address;
     var infoWindow = new google.maps.InfoWindow();
-	var cityshortname;
-	var citylongname;
-	var latlng = new google.maps.LatLng(data.latitude, data.longitude);
-	geocoder = new google.maps.Geocoder();
-    geocoder.geocode({'latLng': latlng}, function(results, status) 
+	var newtime = getMyFormatDate(data.time);
+	var html = '<div class="infowindow scrollFix"> <div class="row"><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Unit Number:</strong> </div><div class="col-md-4">#'+data.unit_number+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Time:</strong> </div><div class="col-md-4">'+data.time+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Address:</strong> </div><div class="col-md-4">'+data.address+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Latitude: </strong></div><div class="col-md-4">'+data.latitude+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Longitude: </strong></div><div class="col-md-4">'+data.longitude+'</div></div></div></div>';
+	google.maps.event.addListener(marker, "click", function(e) 
 	{
-		if (status == google.maps.GeocoderStatus.OK) 
-		{
-			if (results[1]) 
-			{
-				citylongname = results[0].formatted_address;
-				console.log(results[0].formatted_address);
-				for (var i=0; i<results[0].address_components.length; i++) 
-				{
-					for (var b=0;b<results[0].address_components[i].types.length;b++) 
-					{
-						if (results[0].address_components[i].types[b] == "administrative_area_level_1") 
-						{
-							city= results[0].address_components[i];
-							break;
-						}
-					}
-				}
-			}else{
-				citylongname = "No Address Found";
-			}
-		} else {
-			setTimeout(3000);
-		}
-		var newtime = getMyFormatDate(data.time);
-		var html = '<div class="infowindow scrollFix"> <div class="row"><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Unit Number:</strong> </div><div class="col-md-4">#'+data.unit_number+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Time:</strong> </div><div class="col-md-4">'+newtime+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Address:</strong> </div><div class="col-md-4">'+citylongname+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Latitude: </strong></div><div class="col-md-4">'+data.latitude+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Longitude: </strong></div><div class="col-md-4">'+data.longitude+'</div></div></div></div>';
-		google.maps.event.addListener(marker, "click", function(e) 
-		{
-			infoWindow.setContent(html);
-			infoWindow.open(map, marker);
-		});
-
-		(function(marker, data) 
-		{
-			google.maps.event.addListener(marker, "click", function(e) 
-			{
-				infoWindow.setContent(html);
-			});
-		})(marker, data);
-	
+		infoWindow.setContent(html);
+		infoWindow.open(map, marker);
 	});
+
 }
 
-function infoPoly(map, flightPath, data) {
-  google.maps.event.addListener(flightPath, 'click', function(event) {
-    mk = new google.maps.Marker({
-      map: map,
-      position: event.latLng,
-
-    });
-    markers.push(mk);
-    map.setZoom(20);
-    map.setCenter(mk.getPosition());
-    var betweenStr = "result no found";
-    var betweenStr = "result no found";
-    for (var i=0; i<flightPath.getPath().getLength()-1; i++) {
-       var tempPoly = new google.maps.Polyline({
-         path: [flightPath.getPath().getAt(i), flightPath.getPath().getAt(i+1)]
-       })
-       if (google.maps.geometry.poly.isLocationOnEdge(mk.getPosition(), tempPoly, 10e-6)) {
-          betweenStr = "between "+i+ " and "+(i+1);
-       }
-    }
-
-    (function(mk, betweenStr) {
-      google.maps.event.addListener(mk, "click", function(e) {
-        infowindow.setContent(betweenStr+"<br>loc:" + this.getPosition().toUrlValue(6));
-        infowindow.open(map, mk);
-      });
-    })(mk, betweenStr);
-
-    google.maps.event.trigger(mk,'click');
-  });
+function infoPoly(map, flightPath, data) 
+{
+  
 }
 
 function getMyFormatDate(date) {
@@ -615,6 +622,27 @@ function countPlaces(num) {
     var b = String(num).split(sep);
   return b[1]? b[1].length : 0;
 }
+
+function getReverseGeocodingData(lat, lng) 
+{
+    var address;
+    var ajaxurl = "<?php echo route('tracker.getgeolocation');?>";
+    $.ajax({
+        url : ajaxurl,
+        type : 'POST',
+        dataType:'json',
+        data:{
+            "_token": "{{ csrf_token() }}",
+            lat:lat,
+            lng:lng
+        },
+        success : function(data) {              
+            address = data;
+        }
+    });
+    
+    return address;
+}
 </script>
 <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
 <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
@@ -638,5 +666,5 @@ jQuery(document).ready(function($)
 });
 </script>
 
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=yourkeylibraries=geometry&callback=initMap"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{$google_api_key}}&libraries=geometry&callback=initMap"></script>
 @stop
