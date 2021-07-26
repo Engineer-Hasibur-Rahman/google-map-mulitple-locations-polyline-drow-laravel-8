@@ -10,11 +10,40 @@
 
 @section('content')
 <style type="text/css">
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px grey; 
+  border-radius: 8px;
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: gray; 
+  border-radius: 8px;
+}
+
 #adminmenu{
     width:100%;
 }
+button.gm-ui-hover-effect {
+    background: #c9e2ad !important;
+    border-top-right-radius: 5px !important;
+    top: 3px !important;
+    right: 3px !important;
+    width: 28px !important;
+    height: 29px !important;
+}
 .gm-style-iw.gm-style-iw-c {
-    width: 345px !important;
+    width: 280px !important;
+    background: #000000bd !important;
+    color: #f9f9f9 !important;
+    text-align: center;
+    padding: 15px !important;
 }
 #mapCanvas {
     width: 100%;
@@ -117,14 +146,57 @@ div#showdaterange > .form-group > input {
 }
 .historySection{
     position: absolute;
-    right: 15px;
-    top: 10.2em;
+    right: 2px;
+    top: 5.7em;
     z-index: 99999999999;
-    background: #0000007a;
+    background: #d7b6c27a;
     width: 18%;
     padding: .70rem;
     color: #f9f9f9;
     border-radius: 5px;
+    height: 499px;
+    overflow-y: scroll;
+    color: #404312;
+    font-size: 14px;
+    font-weight: 500;
+}
+.gm-style-iw-d{
+    overflow:hidden !important;
+}
+.gm-style .gm-style-iw-c {
+    position: absolute;
+    box-sizing: border-box;
+    overflow: hidden;
+    top: 0;
+    left: 0;
+    transform: translate(-50%,-100%);
+    border-radius: 8px;
+    padding: 14px;
+    background: #000000bd;
+    color: #f9f9f9;
+    box-shadow: 0 2px 7px 1px rgb(0 0 0 / 30%);
+    text-align: left;
+}
+.infowindow{
+    width: 100%;
+    overflow-x: scroll;
+}
+.infowindowall{
+    width: 100%;
+    overflow-x: scroll;
+}
+.bgc{
+    background: #f9f9f9;
+    border-radius: 5px;
+    border-bottom: 1px solid;
+    padding: .65rem;
+    text-align: left;
+    font-size: 11px;
+}
+.bgc:hover{
+    background: #000000;
+    color:#f9f9f9;
+    transition:.3s;
 }
 </style>
 
@@ -139,9 +211,8 @@ div#showdaterange > .form-group > input {
             <div class="col-md-12">			
                 <div class="panel panel-bordered">
                    <div class="cont">
-                        <!--<div id="history_popup" class="historySection">
-                            <p>History</p>
-                        </div>-->
+                        <div id="history_popup" class="historySection" style="display:none;">
+                        </div>
                     	<div class="row mapoptions">
                     		<div class="col-md-12" styloe="margin:0 !important;">
                     		    <div class="row">
@@ -153,13 +224,12 @@ div#showdaterange > .form-group > input {
                             			<select class="form-control" name="trailers" id="trailers">
                             			<option></option>
                             			<?php
-                            				foreach($locations as $location)
-                            				{
-                            				    
-                            					?>
-                            					<option value="<?=$location->company;?>" data-last-location-time="<?=$location->last_location_time?>" data-lat="<?=$location->latitude?>" data-long="<?=$location->longitude?>"><?=$location->unit_number?></option>
-                            					<?php 
-                            				}
+                        				foreach($locations as $location)
+                        				{
+                        					?>
+                        					<option value="<?=$location->company;?>" data-last-location-time="<?=$location->last_location_time?>" data-lat="<?=$location->latitude?>" data-long="<?=$location->longitude?>"><?=$location->unit_number?></option>
+                        					<?php 
+                        				}
                             			?>
                             			</select>
                         			</div>
@@ -196,6 +266,42 @@ div#showdaterange > .form-group > input {
                         			</div>
                     			</div>
                     		</div>
+                    		
+                    		<div id="divmarkers" style="display:none;"></div>
+                    		<!--history view-->
+                    		<!--<div class="col-md-12" styloe="margin:0 !important;">
+                    		    <div class="row">
+                        			<div class="col-md-12" id="showdaterange" style="display:none;margin:0 !important;">
+                    		            <div class="form-group">
+                    		                <input type="text" name="daterange" class="form-control" value="" />
+                    		            </div>
+                    		        </div>
+                        			<div class="col-md-12">
+                            			<div class="map_wrap">
+                            				<div class="siderbarmap">
+                            				    <div class="row">
+                            				        <div class="col-md-12" style="margin:0 !important;" id="justtest">
+                                				        
+                                				    </div>
+                            				    </div>
+                            				    
+                            					<div class="row">
+                            				        <div class="col-md-12" style="margin:0 !important;">
+                            						    <input id="omnitracsCheckbox" type="checkbox" onclick="toggleGroup('Omnitracs')" checked="checked" style="margin-right:.3rem;" />Omnitracs Trucks
+                            					    </div>
+                            					</div>
+                            					
+                            					<div class="row">
+                            				        <div class="col-md-12" style="margin:0 !important;">
+                            						    <input id="orbcommCheckbox" type="checkbox" onclick="toggleGroup('orbcomm')" checked="checked" style="margin-right:.3rem;" />Orbcomm Trailors
+                            					    </div>
+                            					</div>
+                            				</div>
+                        			    </div>
+                        			</div>
+                    			</div>
+                    		</div>-->
+                    		
                     	</div>
                     	<p>&nbsp;</p>
                         
@@ -213,6 +319,13 @@ div#showdaterange > .form-group > input {
 @section('javascript')
 
 <script>
+jQuery(document).ready(function($)
+{
+    $( '.historydata' ).mouseenter(function() 
+    {
+        console.log($(this).attr("data-unit"));
+    });
+});
 jQuery('#resetmap').on('click',function(ev)
 {
     ev.preventDefault();
@@ -222,24 +335,7 @@ jQuery('#resetmap').on('click',function(ev)
 
 $('#trailers').select2({placeholder: "Select Unit",dropdownAutoWidth : true,width: '100%'});
 
-//var markers = [ <?php // echo $markers;?> ];
-
-var markers = [
-	<?php /* if($num_rows > 0)
-	{ */
-		foreach($locations as $location)
-		{
-			echo '["", '.$location->latitude.', '.$location->longitude.', "'.$location->company.'", "'.$location->unit_number.'"],';
-		}
-	//}
-	?>
-];
 var xmlMarkers;
-for( i = 0; i < markers.length; i++ ) {
-	xmlMarkers += '<marker name="" lat="'+markers[i][1]+'" lng="'+markers[i][2]+'" type="'+markers[i][3]+'" unit="'+markers[i][4]+'" />';
-}
-
-var xmlData = '<markers> '+ xmlMarkers +'</markers>';
 
 var markerGroups = {
 		"Wialon": [],
@@ -260,23 +356,18 @@ function initMap()
 					
 	map = new google.maps.Map(document.getElementById("mapCanvas"), mapOptions);
 	map.setTilt(50);
-		
-	//var markers = [ <?php // echo $markers;?> ];
 	
 	var markers = [
-    	<?php /* if($num_rows > 0)
-    	{ */
+    	<?php
     		foreach($locations as $location)
     		{
     			echo '["", '.$location->latitude.', '.$location->longitude.', "'.$location->company.'", "'.$location->unit_number.'"],';
     		}
-    	//}
     	?>
     ];
 	
 	var infoWindow = new google.maps.InfoWindow(), marker, i;
 
-	var xmlMarkers = '';
 	for( i = 0; i < markers.length; i++ ) 
 	{
 		xmlMarkers += '<marker name="" lat="'+markers[i][1]+'" lng="'+markers[i][2]+'" type="'+markers[i][3]+'" unit="'+markers[i][4]+'" />';
@@ -285,7 +376,7 @@ function initMap()
 		
 		marker = new google.maps.Marker({
 			position: position,
-			icon: publicpath +"/"+ markers[i][3] + ".png",
+			icon: '<?php echo $publicpath;?>/'+markers[i][3]+".png",
 			map: map
 		});
 
@@ -343,6 +434,26 @@ function initMap()
 			    $("#mapCanvas").css("opacity", "1");
 			    $("#showdaterange").show('slow');
 				polyline(json);
+				var listmenus = "";
+                for (var t = 0; t < json.length; t++)
+                {
+                    data = json[t];
+                    listmenus += "<a href='javascript:void(0);' class='historydata' data-lattt='"+data.latitude+"' data-longgg='"+data.longitude+"' data-unit='"+data.unit_number+"' data-company='"+data.company+"'><div class='col-md-12 bgc'><div class='row'><div class='col-md-4' style='margin:0px !important;'>"+data.time+"</div></div></div></a>";
+                }
+                $("#history_popup").show('slow');
+                $("#history_popup").html(listmenus);
+                
+                $('.historydata').mouseover(function() 
+                { 
+                    var history_lat = $(this).attr("data-lattt");
+                    var history_lng = $(this).attr("data-longgg");
+                    var history_unit = $(this).attr("data-unit");
+                    var type = $(this).attr("data-company");
+                    
+                	console.log("lat: " + history_lat + " " + "long: " + history_lng);
+                	
+                	addmarkeronmouseover(history_lat, history_lng, map);
+                });
 			},
 			error : function(request,error)
 			{
@@ -357,7 +468,6 @@ function initMap()
 	
 	$('input[name="daterange"]').on('apply.daterangepicker', function(ev, picker) 
     {
-        
         $("#loadinstatus").show('slow');
 	    $("#mapCanvas").css("opacity", "0.3");
         var unit_number = $("#trailers").find("option:selected").text();
@@ -387,6 +497,25 @@ function initMap()
 			    $("#mapCanvas").css("opacity", "1");
 			    $("#showdaterange").show('slow');
                 polyline(json);
+                var listmenus = "";
+                for (var t = 0; t < json.length; t++){
+                    data = json[t];
+                    listmenus += "<a href='javascript:void(0);' class='historydata' data-lattt='"+data.latitude+"' data-longgg='"+data.longitude+"' data-unit='"+data.unit_number+"' data-company='"+data.company+"'><div class='col-md-12 bgc'><div class='row'><div class='col-md-4' style='margin:0px !important;'>"+data.time+"</div></div></div></a>";
+                }
+                $("#history_popup").show('slow');
+                $("#history_popup").html(listmenus);
+                
+                $('.historydata').mouseover(function() 
+                { 
+                    var history_lat = $(this).attr("data-lattt");
+                    var history_lng = $(this).attr("data-longgg");
+                    var history_unit = $(this).attr("data-unit");
+                    var type = $(this).attr("data-company");
+                    
+                	console.log("lat: " + history_lat + " " + "long: " + history_lng);
+                	
+                	addmarkeronmouseover(history_lat, history_lng, map);
+                });
             },
             error: function(xhr, desc, err) {
                 console.log(xhr);
@@ -399,8 +528,8 @@ function initMap()
 function createMarker(point, type, map, lat, longi, unitno)
 {
     var contentString;
-    
-	contentString = 'Unit Number:' + unitno + '<br /> Latitude:' + lat + '<br /> Longitude:' + longi;
+   
+	contentString = ' <div class="infowindowall scrollFix"> <div class="row"> <div class="row col-md-12" style="margin-bottom: 0px;"> <div class="col-md-4"><strong>Unit Number:</strong></div><div class="col-md-4">#'+unitno+'</div></div><div class="row col-md-12" style="margin-bottom: 0px;"> <div class="col-md-4"><strong>Latitude: </strong></div><div class="col-md-4">'+lat+'</div></div><div class="row col-md-12" style="margin-bottom: 0px;"> <div class="col-md-4"><strong>Longitude: </strong></div><div class="col-md-4">'+longi+'</div></div></div></div>';
 	var infowindow = new google.maps.InfoWindow({
 		content: contentString,
 	});
@@ -414,7 +543,8 @@ function createMarker(point, type, map, lat, longi, unitno)
 		map: map,
 		position: point,
 		icon: customIcons[type].icon,
-		type: type
+		type: type,
+		title: capitalizeFirstLetter(type) + " ( "+unitno+" ) "
 	});
 
 	if (!markerGroups[type]) markerGroups[type] = [];
@@ -425,9 +555,15 @@ function createMarker(point, type, map, lat, longi, unitno)
 			map,
 			shouldFocus: false,
 		});
+		
+		getUnitHistory(unitno, lat, longi,map);
 	});
-	
+
 	return marker;
+}
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
 function toggleGroup(type) 
@@ -455,7 +591,6 @@ function bindInfoWindow(marker, map, infoWindow)
 		});
 	});
 }
-
 
 function doNothing() {}
 google.maps.event.addDomListener(window, 'load', initMap);
@@ -521,9 +656,9 @@ function polyline(json)
 		myTrip.push(latLng);
 	    if (i == 0)
 	    {
-	        console.log("Location: " + data.address + ", Last Location Time: " + data.time);
 	        var marker = new google.maps.Marker({
     			position: latLng,
+    			animation: google.maps.Animation.DROP,
     			strokeColor: "#000000",
                 strokeOpacity: 1.0,
                 strokeWeight: 2,
@@ -533,12 +668,14 @@ function polyline(json)
     			title: data.latitude,
     			offset:'100%'
     		});
+    		google.maps.event.clearListeners(marker, 'click');
     		infoBox(map, marker, data);
     		var flightPath = new google.maps.Polyline({
                 path: myTrip,
                 strokeColor: "#FF0000",
                 strokeOpacity: 1.0,
                 strokeWeight: 3,
+                animation: google.maps.Animation.DROP,
                 icon: '<?php echo $publicpath;?>/'+data.company+'.png',
                 offset: '100%'
             });
@@ -577,7 +714,8 @@ function infoBox(map, marker, data)
     var address;
     var infoWindow = new google.maps.InfoWindow();
 	var newtime = getMyFormatDate(data.time);
-	var html = '<div class="infowindow scrollFix"> <div class="row"><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Unit Number:</strong> </div><div class="col-md-4">#'+data.unit_number+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Time:</strong> </div><div class="col-md-4">'+data.time+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Address:</strong> </div><div class="col-md-4">'+data.address+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Latitude: </strong></div><div class="col-md-4">'+data.latitude+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Longitude: </strong></div><div class="col-md-4">'+data.longitude+'</div></div></div></div>';
+	address = data.address.replace(/.{200}/g, "$0\n")
+	var html = '<div class="infowindow scrollFix"> <div class="row"><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Unit Number:</strong> </div><div class="col-md-4">#'+data.unit_number+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Time:</strong> </div><div class="col-md-4">'+data.time+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Address:</strong> </div><div class="col-md-4">'+address+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Latitude: </strong></div><div class="col-md-4">'+data.latitude+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Longitude: </strong></div><div class="col-md-4">'+data.longitude+'</div></div></div></div>';
 	google.maps.event.addListener(marker, "click", function(e) 
 	{
 		infoWindow.setContent(html);
@@ -586,10 +724,7 @@ function infoBox(map, marker, data)
 
 }
 
-function infoPoly(map, flightPath, data) 
-{
-  
-}
+function infoPoly(map, flightPath, data) { }
 
 function getMyFormatDate(date) {
 	var date = new Date(date);
@@ -636,12 +771,95 @@ function getReverseGeocodingData(lat, lng)
             lat:lat,
             lng:lng
         },
-        success : function(data) {              
+        success : function(data) {
             address = data;
         }
     });
     
     return address;
+}
+
+function getUnitHistory(unit_number,latitude,longitude,map)
+{
+    var bounds = new google.maps.LatLngBounds();
+	var ajaxurl = "<?php echo route('tracker.getlocation',['"+unit_number+"']); ?>";
+	$("#loadinstatus").show('slow');
+	$("#mapCanvas").css("opacity", "0.3");
+	$.ajax({
+		url : ajaxurl,
+		type : 'POST',
+		data : {
+			"_token": "{{ csrf_token() }}",
+			unit_number : unit_number
+		},
+		dataType:'json',
+		success : function(json) 
+		{
+		    if (json.length == 0 ) {
+                console.log("NO DATA!");
+                return false;
+            }
+		    $("#loadinstatus").hide('slow');
+		    $("#mapCanvas").css("opacity", "1");
+		    $("#showdaterange").show('slow');
+			polyline(json);
+			var listmenus = "";
+            for (var t = 0; t < json.length; t++)
+            {
+                data = json[t];
+                listmenus += "<a href='javascript:void(0);' class='historydata' data-lattt='"+data.latitude+"' data-longgg='"+data.longitude+"' data-unit='"+data.unit_number+"' data-company='"+data.company+"'><div class='col-md-12 bgc'><div class='row'><div class='col-md-4' style='margin:0px !important;'>"+data.time+"</div></div></div></a>";
+            }
+            $("#history_popup").show('slow');
+            $("#history_popup").html(listmenus);
+            
+            $('.historydata').mouseover(function() 
+            { 
+                var history_lat = $(this).attr("data-lattt");
+                var history_lng = $(this).attr("data-longgg");
+                var history_unit = $(this).attr("data-unit");
+                var type = $(this).attr("data-company");
+                
+            	console.log("lat: " + history_lat + " " + "long: " + history_lng);
+            	
+            	addmarkeronmouseover(history_lat, history_lng, map);
+            });
+		},
+		error : function(request,error)
+		{
+			console.log("Request: "+JSON.stringify(request));
+		}
+	});
+	
+	latitude = parseFloat(latitude);
+	longitude = parseFloat(longitude);
+	var position = new google.maps.LatLng(latitude, longitude);
+	map.setCenter(position);
+	smoothZoom(map, 16, map.getZoom());
+}
+
+function convertTZ(date, tzString) {
+    return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", {timeZone: tzString}));   
+}
+
+function addmarkeronmouseover(lat, long, map)
+{
+    var pinColor = "FE7569";
+	var pinImage = new google.maps.MarkerImage("http://labs.google.com/ridefinder/images/mm_20_red.png" + pinColor,
+    new google.maps.Size(14, 21),
+    new google.maps.Point(0,0),
+    new google.maps.Point(10, 21));
+    var latLng = new google.maps.LatLng(lat,long);
+    addMarker(latLng);
+}
+
+function addMarker(location) {
+    marker = new google.maps.Marker({
+        position: location,
+        map: map
+    });
+    
+    map.setZoom(24);
+    map.setCenter(marker.getPosition());
 }
 </script>
 <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
@@ -663,6 +881,8 @@ jQuery(document).ready(function($)
         endDate: end,
         autoclose: true
     });
+    
+    $(".infowindowall").parents("div.gm-style-iw").addClass("customwidth");
 });
 </script>
 
