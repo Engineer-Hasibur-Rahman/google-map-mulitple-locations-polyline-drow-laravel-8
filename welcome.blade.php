@@ -1,14 +1,8 @@
 @extends('voyager::master')
 
-@section('page_header')
-    <div class="container-fluid">
-		<div class="card-header bg-card-header" style="margin-left:0px !important;">
-			<h1 class="page-title">Track Trucks And Trailers</h1>
-		</div>
-    </div>
-@stop
-
 @section('content')
+@include('voyager::alerts')
+        @include('voyager::dimmers')
 <style type="text/css">
 /* width */
 ::-webkit-scrollbar {
@@ -39,7 +33,7 @@ button.gm-ui-hover-effect {
     height: 29px !important;
 }
 .gm-style-iw.gm-style-iw-c {
-    width: 280px !important;
+    width: 277px !important;
     background: #000000bd !important;
     color: #f9f9f9 !important;
     text-align: center;
@@ -149,7 +143,7 @@ div#showdaterange > .form-group > input {
     right: 2px;
     top: 5.7em;
     z-index: 99999999999;
-    background: #d7b6c27a;
+    background: #0c0c0cb5;
     width: 18%;
     padding: .70rem;
     color: #f9f9f9;
@@ -186,27 +180,32 @@ div#showdaterange > .form-group > input {
     overflow-x: scroll;
 }
 .bgc{
-    background: #f9f9f9;
+    background: #3d3d3d;
     border-radius: 5px;
-    border-bottom: 1px solid;
+    border-bottom: 1px solid #666;
     padding: .65rem;
     text-align: left;
     font-size: 11px;
+    color: #f8f8f8;
 }
 .bgc:hover{
-    background: #000000;
-    color:#f9f9f9;
-    transition:.3s;
+    background: #6f6969;
+    color: #f9f9f9;
+    transition: .6s;
+}
+span#unitselection {
+    font-size: 2rem;
+    color: #ffffff;
 }
 </style>
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@3.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
 
 <?php $publicpath = URL::to('/public/');?>
-
-<div class="page-content browse container-fluid">
+    <div class="page-content" style="margin: auto;
+    width: 99%;">
         <div class="row">
             <div class="col-md-12">			
                 <div class="panel panel-bordered">
@@ -303,21 +302,17 @@ div#showdaterange > .form-group > input {
                     		</div>-->
                     		
                     	</div>
-                    	<p>&nbsp;</p>
-                        
                         <div id="mapCanvas" style=""></div>
                     </div>
-                    <p>&nbsp;</p>
                 </div>
             </div>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+	<script src="https://code.jquery.com/jquery-3.2.1.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 @stop
 
 @section('javascript')
-
 <script>
 jQuery(document).ready(function($)
 {
@@ -330,6 +325,8 @@ jQuery('#resetmap').on('click',function(ev)
 {
     ev.preventDefault();
     $("#showdaterange").hide('slow');
+    $("#history_popup").hide('slow');
+    $("#history_popup").html("");
     initMap();
 });
 
@@ -344,7 +341,7 @@ var markerGroups = {
 	};
 var infoWindow = new google.maps.InfoWindow();
 
-var publicpath = "<?php echo $publicpath;?>";
+var publicpath = "<?php echo $publicpath;?>/";
 
 function initMap()
 {
@@ -376,7 +373,7 @@ function initMap()
 		
 		marker = new google.maps.Marker({
 			position: position,
-			icon: '<?php echo $publicpath;?>/'+markers[i][3]+".png",
+			icon: publicpath+markers[i][3]+".png",
 			map: map
 		});
 
@@ -409,12 +406,14 @@ function initMap()
 	});
 	$('#trailers').on("change", function()
 	{
+	    $("#voyager-loader").show();
+	    $("#history-loader").show();
 	    $("#loadinstatus").show('slow');
 	    $("#mapCanvas").css("opacity", "0.3");
 		var unit_number = $(this).find("option:selected").text();
 		var latitude = $(this).children('option:selected').data('lat');
 		var longitude = $(this).children('option:selected').data('long');
-		var ajaxurl = "<?php echo route('tracker.getlocation',['"+unit_number+"']);?>";
+		var ajaxurl = "<?php echo route('voyager.getlocations', ['"+unit_number+"']);?>";
 
 		$.ajax({
 			url : ajaxurl,
@@ -427,32 +426,37 @@ function initMap()
 			success : function(json) 
 			{
 			    if ( json.length == 0 ) {
-                    alert("NO DATA!");
+                    $("#loadinstatus").text('Sorry, no data found!');
+    			    $("#mapCanvas").css("opacity", "1");
+    			    $("#voyager-loader").hide();
                     return false;
                 }
+                $("#history-loader").hide();
 			    $("#loadinstatus").hide('slow');
 			    $("#mapCanvas").css("opacity", "1");
 			    $("#showdaterange").show('slow');
+			    $("#voyager-loader").hide();
 				polyline(json);
-				var listmenus = "";
+				var listmenus = "<span id='unitselection'>#"+unit_number+"</span> <br />";
                 for (var t = 0; t < json.length; t++)
                 {
                     data = json[t];
-                    listmenus += "<a href='javascript:void(0);' class='historydata' data-lattt='"+data.latitude+"' data-longgg='"+data.longitude+"' data-unit='"+data.unit_number+"' data-company='"+data.company+"'><div class='col-md-12 bgc'><div class='row'><div class='col-md-4' style='margin:0px !important;'>"+data.time+"</div></div></div></a>";
+                    listmenus += "<a href='javascript:void(0);' class='historydata' data-address='"+data.address+"' data-lattt='"+data.latitude+"' data-longgg='"+data.longitude+"' data-unit='"+data.unit_number+"' data-company='"+data.company+"'><div class='col-md-12 bgc'><div class='row'><div class='col-md-4' style='margin:0px !important;'>"+data.time+"</div></div></div></a>";
                 }
                 $("#history_popup").show('slow');
                 $("#history_popup").html(listmenus);
                 
-                $('.historydata').mouseover(function() 
+                $('.historydata').on("click",function() 
                 { 
                     var history_lat = $(this).attr("data-lattt");
                     var history_lng = $(this).attr("data-longgg");
                     var history_unit = $(this).attr("data-unit");
                     var type = $(this).attr("data-company");
+                    var address = $(this).attr("data-address");
                     
                 	console.log("lat: " + history_lat + " " + "long: " + history_lng);
                 	
-                	addmarkeronmouseover(history_lat, history_lng, map);
+                	addmarkeronmouseover(address, history_lat, history_lng, map);
                 });
 			},
 			error : function(request,error)
@@ -463,15 +467,20 @@ function initMap()
 		var latlng = new google.maps.LatLng(latitude, longitude);
 
 		map.setCenter(latlng);
-		smoothZoom(map, 28, map.getZoom());
+		smoothZoom(map, 7, map.getZoom());
 	});
 	
 	$('input[name="daterange"]').on('apply.daterangepicker', function(ev, picker) 
     {
+        $("#voyager-loader").show();
         $("#loadinstatus").show('slow');
 	    $("#mapCanvas").css("opacity", "0.3");
         var unit_number = $("#trailers").find("option:selected").text();
-        var ajaxurl = "<?php echo route('tracker.getlocation',['"+unit_number+"']);?>";
+        if(unit_number == "")
+        {
+            unit_number = $(this).attr("data-selected-unit");
+        }
+        var ajaxurl = "<?php echo route('voyager.getlocations', ['"+unit_number+"']);?>";
         
         var begin = picker.startDate.format('YYYY-MM-DD hh:mm:ss');
         var stop = picker.endDate.format('YYYY-MM-DD hh:mm:ss');
@@ -493,28 +502,30 @@ function initMap()
 			        $("#showdaterange").show('slow');
 			        return false;
                 }
+                $("#voyager-loader").hide();
                 $("#loadinstatus").hide('slow');
 			    $("#mapCanvas").css("opacity", "1");
 			    $("#showdaterange").show('slow');
                 polyline(json);
-                var listmenus = "";
+                var listmenus = "<span id='unitselection'>#"+unit_number+"</span> <br />";
                 for (var t = 0; t < json.length; t++){
                     data = json[t];
-                    listmenus += "<a href='javascript:void(0);' class='historydata' data-lattt='"+data.latitude+"' data-longgg='"+data.longitude+"' data-unit='"+data.unit_number+"' data-company='"+data.company+"'><div class='col-md-12 bgc'><div class='row'><div class='col-md-4' style='margin:0px !important;'>"+data.time+"</div></div></div></a>";
+                    listmenus += "<a href='javascript:void(0);' class='historydata' data-address='"+data.address+"' data-lattt='"+data.latitude+"' data-longgg='"+data.longitude+"' data-unit='"+data.unit_number+"' data-company='"+data.company+"'><div class='col-md-12 bgc'><div class='row'><div class='col-md-4' style='margin:0px !important;'>"+data.time+"</div></div></div></a>";
                 }
                 $("#history_popup").show('slow');
                 $("#history_popup").html(listmenus);
                 
-                $('.historydata').mouseover(function() 
+                $('.historydata').on("click",function() 
                 { 
                     var history_lat = $(this).attr("data-lattt");
                     var history_lng = $(this).attr("data-longgg");
                     var history_unit = $(this).attr("data-unit");
                     var type = $(this).attr("data-company");
+                    var address = $(this).attr("data-address");
                     
                 	console.log("lat: " + history_lat + " " + "long: " + history_lng);
                 	
-                	addmarkeronmouseover(history_lat, history_lng, map);
+                	addmarkeronmouseover(address, history_lat, history_lng, map);
                 });
             },
             error: function(xhr, desc, err) {
@@ -636,7 +647,7 @@ function polyline(json)
     );
     var mapOptions = {
         center: new google.maps.LatLng(json[0].latitude, json[0].longitude),
-        zoom: 19,
+        zoom: 7,
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
     map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
@@ -665,10 +676,10 @@ function polyline(json)
                 geodesic: true,
                 map: map,
     			icon: '<?php echo $publicpath;?>/'+data.company+'.png',
-    			title: data.latitude,
+    			title: data.company + "( " +data.unit_number+ " )",
     			offset:'100%'
     		});
-    		google.maps.event.clearListeners(marker, 'click');
+    		//google.maps.event.addListener(marker, 'click');
     		infoBox(map, marker, data);
     		var flightPath = new google.maps.Polyline({
                 path: myTrip,
@@ -690,7 +701,7 @@ function polyline(json)
                 geodesic: true,
                 map: map,
     			icon: lineSymbol,
-    			title: data.latitude,
+    			title: data.company + "( " +data.unit_number+ " )",
     			offset:'100%'
     		});
     		infoBox(map, marker, data);
@@ -709,6 +720,11 @@ function polyline(json)
     flightPath.setMap(map);
 }
 
+function closeLastOpenedInfoWindow(infoWindow) 
+{
+    return infoWindow.close();
+}
+
 function infoBox(map, marker, data) 
 {
     var address;
@@ -718,10 +734,10 @@ function infoBox(map, marker, data)
 	var html = '<div class="infowindow scrollFix"> <div class="row"><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Unit Number:</strong> </div><div class="col-md-4">#'+data.unit_number+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Time:</strong> </div><div class="col-md-4">'+data.time+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Address:</strong> </div><div class="col-md-4">'+address+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Latitude: </strong></div><div class="col-md-4">'+data.latitude+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Longitude: </strong></div><div class="col-md-4">'+data.longitude+'</div></div></div></div>';
 	google.maps.event.addListener(marker, "click", function(e) 
 	{
-		infoWindow.setContent(html);
+	    closeLastOpenedInfoWindow(infoWindow) 
+	    infoWindow.setContent(html);
 		infoWindow.open(map, marker);
 	});
-
 }
 
 function infoPoly(map, flightPath, data) { }
@@ -761,7 +777,7 @@ function countPlaces(num) {
 function getReverseGeocodingData(lat, lng) 
 {
     var address;
-    var ajaxurl = "<?php echo route('tracker.getgeolocation');?>";
+    var ajaxurl = "<?php echo route('voyager.getgeolocation');?>";
     $.ajax({
         url : ajaxurl,
         type : 'POST',
@@ -782,7 +798,8 @@ function getReverseGeocodingData(lat, lng)
 function getUnitHistory(unit_number,latitude,longitude,map)
 {
     var bounds = new google.maps.LatLngBounds();
-	var ajaxurl = "<?php echo route('tracker.getlocation',['"+unit_number+"']); ?>";
+	var ajaxurl = "<?php echo route('voyager.getlocations', ['"+unit_number+"']); ?>";
+	$("#voyager-loader").show();
 	$("#loadinstatus").show('slow');
 	$("#mapCanvas").css("opacity", "0.3");
 	$.ajax({
@@ -799,29 +816,32 @@ function getUnitHistory(unit_number,latitude,longitude,map)
                 console.log("NO DATA!");
                 return false;
             }
+            $('input[name="daterange"]').attr("data-selected-unit", unit_number);
+            $("#voyager-loader").hide();
 		    $("#loadinstatus").hide('slow');
 		    $("#mapCanvas").css("opacity", "1");
 		    $("#showdaterange").show('slow');
 			polyline(json);
-			var listmenus = "";
+			var listmenus = "<span id='unitselection'>#"+unit_number+"</span> <br />";
             for (var t = 0; t < json.length; t++)
             {
                 data = json[t];
-                listmenus += "<a href='javascript:void(0);' class='historydata' data-lattt='"+data.latitude+"' data-longgg='"+data.longitude+"' data-unit='"+data.unit_number+"' data-company='"+data.company+"'><div class='col-md-12 bgc'><div class='row'><div class='col-md-4' style='margin:0px !important;'>"+data.time+"</div></div></div></a>";
+                listmenus += "<a href='javascript:void(0);' class='historydata' data-address='"+data.address+"' data-lattt='"+data.latitude+"' data-longgg='"+data.longitude+"' data-unit='"+data.unit_number+"' data-company='"+data.company+"'><div class='col-md-12 bgc'><div class='row'><div class='col-md-4' style='margin:0px !important;'>"+data.time+"</div></div></div></a>";
             }
             $("#history_popup").show('slow');
             $("#history_popup").html(listmenus);
             
-            $('.historydata').mouseover(function() 
-            { 
+            $('.historydata').on("click",function() 
+            {
                 var history_lat = $(this).attr("data-lattt");
                 var history_lng = $(this).attr("data-longgg");
                 var history_unit = $(this).attr("data-unit");
                 var type = $(this).attr("data-company");
+                var address = $(this).attr("data-address");
                 
             	console.log("lat: " + history_lat + " " + "long: " + history_lng);
             	
-            	addmarkeronmouseover(history_lat, history_lng, map);
+            	addmarkeronmouseover(address, history_lat, history_lng, map);
             });
 		},
 		error : function(request,error)
@@ -834,14 +854,14 @@ function getUnitHistory(unit_number,latitude,longitude,map)
 	longitude = parseFloat(longitude);
 	var position = new google.maps.LatLng(latitude, longitude);
 	map.setCenter(position);
-	smoothZoom(map, 16, map.getZoom());
+	smoothZoom(map, 4, map.getZoom());
 }
 
 function convertTZ(date, tzString) {
     return new Date((typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", {timeZone: tzString}));   
 }
 
-function addmarkeronmouseover(lat, long, map)
+function addmarkeronmouseover(address,lat, long, map)
 {
     var pinColor = "FE7569";
 	var pinImage = new google.maps.MarkerImage("http://labs.google.com/ridefinder/images/mm_20_red.png" + pinColor,
@@ -849,17 +869,24 @@ function addmarkeronmouseover(lat, long, map)
     new google.maps.Point(0,0),
     new google.maps.Point(10, 21));
     var latLng = new google.maps.LatLng(lat,long);
-    addMarker(latLng);
+    addMarker(latLng,address);
 }
 
-function addMarker(location) {
+function addMarker(location,address) 
+{
+    var infowindow = new google.maps.InfoWindow({
+      size: new google.maps.Size(150, 50)
+    });
     marker = new google.maps.Marker({
         position: location,
         map: map
     });
-    
-    map.setZoom(24);
+    google.maps.event.addListener(marker, 'click', function() {
+        infowindow.setContent("Location: " + address);
+        infowindow.open(map, marker);
+    });
     map.setCenter(marker.getPosition());
+    smoothZoom(map, 12, map.getZoom());
 }
 </script>
 <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
