@@ -20,7 +20,9 @@
   background: gray; 
   border-radius: 8px;
 }
-
+.navbar{
+    z-index:999999999999;
+}
 #adminmenu{
     width:100%;
 }
@@ -41,7 +43,7 @@ button.gm-ui-hover-effect {
 }
 #mapCanvas {
     width: 100%;
-    height: 650px;
+    height: 785px;
 }
 #map-layer {
     max-width: 900px;
@@ -85,16 +87,16 @@ body,
 	position:relative;
 }
 .mapoptions {
-    background: #00000012;
+        background: #f2eaeac4;
     overflow: hidden;
     clear: both;
     padding: 1rem;
-    width: 22%;
+    width: 20%;
     border-radius: 5px;
     position: absolute;
     z-index: 900;
-    left: 20px;
-    top: 145px;
+    left: 27px;
+    top: 165px;
     box-shadow: 0px 0px 10px -4px #3c49ea;
 }
 .select2-container--default .select2-selection--single .select2-selection__rendered {
@@ -140,15 +142,15 @@ div#showdaterange > .form-group > input {
 }
 .historySection{
     position: absolute;
-    right: 2px;
-    top: 5.7em;
+    right: 9px;
+    top: 13em;
     z-index: 99999999999;
-    background: #0c0c0cb5;
-    width: 18%;
+    background: #ffffffbf;
+    width: 21%;
     padding: .70rem;
     color: #f9f9f9;
     border-radius: 5px;
-    height: 499px;
+    height: 399px;
     overflow-y: scroll;
     color: #404312;
     font-size: 14px;
@@ -180,29 +182,78 @@ div#showdaterange > .form-group > input {
     overflow-x: scroll;
 }
 .bgc{
-    background: #3d3d3d;
-    border-radius: 5px;
-    border-bottom: 1px solid #666;
+    background: #f0eded9c;
+    border-bottom: 1px solid #337ab7;
     padding: .65rem;
     text-align: left;
     font-size: 11px;
-    color: #f8f8f8;
+    color: #060101;
 }
 .bgc:hover{
-    background: #6f6969;
-    color: #f9f9f9;
+    background: #d5dbea;
+    color: #060505;
     transition: .6s;
+    font-weight: 600;
 }
 span#unitselection {
-    font-size: 2rem;
-    color: #ffffff;
+    font-size: 1.6rem;
+    color: #e64d4d;
+    font-weight: bold;
+    font-family: cursive;
+}
+.loadermap{
+    position: absolute;
+    z-index: 99999999999;
+    background: #ffffffd4;
+    height: 100%;
+    width: 100%;
+    display:none;
+}
+.loadermap img{
+    position: absolute;
+    top: 39%;
+    left: 45%;
+    width: 4%;
+    background: #ffe6e6;
+    border-radius: 50%;
+    box-shadow: 0px 0px 22px 4px #947f7f;
+}
+.select2-dropdown--below{
+    width:58% !important;
+}
+.select2-results__option {
+    font-weight: 500;
+    font-size: 13px;
+}
+.lastupdatedon{
+    font-size: 8px;
+    font-style: italic;
+    font-weight: 600;
+    color: #1b53bc;
+    position: relative;
+    top: 1.7rem;
+    left: 0rem;
 }
 </style>
 
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@3.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
+<link href="{{ asset('public/trackerscripts/css/select2.css') }}" rel="stylesheet" />
+<link rel="stylesheet" type="text/css" href="{{ asset('public/trackerscripts/css/drp.css') }}" />
+<?php
 
+$temp_uids=array();
+$unique_results = array();
+foreach($locations as $result)
+{  if(!in_array($result->unit_number,$temp_uids))
+   { $temp_uids[]=$result->unit_number;
+      $unique_results[]=$result;
+   }
+}
+
+$locations = $unique_results;
+unset($temp_uids, $unique_results);
+
+//echo count($locations);
+?>
 <?php $publicpath = URL::to('/public/');?>
     <div class="page-content" style="margin: auto;
     width: 99%;">
@@ -210,6 +261,7 @@ span#unitselection {
             <div class="col-md-12">			
                 <div class="panel panel-bordered">
                    <div class="cont">
+                        <div class="loadermap"><img src="{{ asset('public/map-loader.gif') }}"></div>
                         <div id="history_popup" class="historySection" style="display:none;">
                         </div>
                     	<div class="row mapoptions">
@@ -226,7 +278,7 @@ span#unitselection {
                         				foreach($locations as $location)
                         				{
                         					?>
-                        					<option value="<?=$location->company;?>" data-last-location-time="<?=$location->last_location_time?>" data-lat="<?=$location->latitude?>" data-long="<?=$location->longitude?>"><?=$location->unit_number?></option>
+                        					<option value="<?=$location->unit_number;?>" data-last-location-time="<?=$location->last_location_time?>" data-lat="<?=$location->latitude?>" data-long="<?=$location->longitude?>"><?=$location->unit_number?> ( <?=$location->company;?> )</option>
                         					<?php 
                         				}
                             			?>
@@ -308,12 +360,21 @@ span#unitselection {
             </div>
         </div>
     </div>
-	<script src="https://code.jquery.com/jquery-3.2.1.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+	<script src="{{ asset('public/trackerscripts/js/jquery_three.js') }}"></script>
+    <script src="{{ asset('public/trackerscripts/js/select2.js') }}"></script>
 @stop
 
 @section('javascript')
 <script>
+(function(){
+    window.onload = function(){
+        var script=document.createElement("script");
+        script.type="text/javascript";
+        script.async=true;
+        script.src="https://maps.google.com/maps/api/js?key={{$google_api_key}}&sensor=false&callback=initMap";
+        document.body.appendChild(script);
+    };
+})(jQuery);
 jQuery(document).ready(function($)
 {
     $( '.historydata' ).mouseenter(function() 
@@ -330,7 +391,10 @@ jQuery('#resetmap').on('click',function(ev)
     initMap();
 });
 
-$('#trailers').select2({placeholder: "Select Unit",dropdownAutoWidth : true,width: '100%'});
+$('#trailers').select2({
+        sorter: data => data.sort((a,b) => a.text.toUpperCase() > b.text.toUpperCase() ? 0 : -1),
+        placeholder: "Select Unit",dropdownAutoWidth : true,width: '100%'
+    });
 
 var xmlMarkers;
 
@@ -348,7 +412,7 @@ function initMap()
     var map;
 	var bounds = new google.maps.LatLngBounds();
 	var mapOptions = {
-		mapTypeId: 'roadmap'
+		mapTypeId: 'satellite'
 	};
 					
 	map = new google.maps.Map(document.getElementById("mapCanvas"), mapOptions);
@@ -358,7 +422,7 @@ function initMap()
     	<?php
     		foreach($locations as $location)
     		{
-    			echo '["", '.$location->latitude.', '.$location->longitude.', "'.$location->company.'", "'.$location->unit_number.'"],';
+    		    echo '["", '.$location->latitude.', '.$location->longitude.', "'.$location->company.'", "'.$location->unit_number.'"],';
     		}
     	?>
     ];
@@ -406,11 +470,12 @@ function initMap()
 	});
 	$('#trailers').on("change", function()
 	{
-	    $("#voyager-loader").show();
 	    $("#history-loader").show();
+	    $(".loadermap").show();
+	    $("#history_popup").hide('slow');
 	    $("#loadinstatus").show('slow');
 	    $("#mapCanvas").css("opacity", "0.3");
-		var unit_number = $(this).find("option:selected").text();
+		var unit_number = $(this).find("option:selected").val();
 		var latitude = $(this).children('option:selected').data('lat');
 		var longitude = $(this).children('option:selected').data('long');
 		var ajaxurl = "<?php echo route('voyager.getlocations', ['"+unit_number+"']);?>";
@@ -425,39 +490,40 @@ function initMap()
 			dataType:'json',
 			success : function(json) 
 			{
-			    if ( json.length == 0 ) {
+			    if ( json.length == 0 ) 
+			    {
                     $("#loadinstatus").text('Sorry, no data found!');
     			    $("#mapCanvas").css("opacity", "1");
     			    $("#voyager-loader").hide();
+    			    $(".loadermap").hide();
                     return false;
-                }
-                $("#history-loader").hide();
-			    $("#loadinstatus").hide('slow');
-			    $("#mapCanvas").css("opacity", "1");
-			    $("#showdaterange").show('slow');
-			    $("#voyager-loader").hide();
-				polyline(json);
-				var listmenus = "<span id='unitselection'>#"+unit_number+"</span> <br />";
-                for (var t = 0; t < json.length; t++)
-                {
-                    data = json[t];
-                    listmenus += "<a href='javascript:void(0);' class='historydata' data-address='"+data.address+"' data-lattt='"+data.latitude+"' data-longgg='"+data.longitude+"' data-unit='"+data.unit_number+"' data-company='"+data.company+"'><div class='col-md-12 bgc'><div class='row'><div class='col-md-4' style='margin:0px !important;'>"+data.time+"</div></div></div></a>";
-                }
-                $("#history_popup").show('slow');
-                $("#history_popup").html(listmenus);
-                
-                $('.historydata').on("click",function() 
-                { 
-                    var history_lat = $(this).attr("data-lattt");
-                    var history_lng = $(this).attr("data-longgg");
-                    var history_unit = $(this).attr("data-unit");
-                    var type = $(this).attr("data-company");
-                    var address = $(this).attr("data-address");
+                }else{
+                    $("#history-loader").hide();
+    			    $("#loadinstatus").hide('slow');
+    			    $(".loadermap").hide();
+    			    $("#mapCanvas").css("opacity", "1");
+    			    $("#showdaterange").show('slow');
+    				polyline(json);
+    				var listmenus = "<span id='unitselection'>#"+unit_number+"</span> <br />";
+                    for (var t = 0; t < json.length; t++)
+                    {
+                        data = json[t];
+                        listmenus += "<a href='javascript:void(0);' class='historydata' data-address='"+data.address+"' data-lattt='"+data.latitude+"' data-longgg='"+data.longitude+"' data-unit='"+data.unit_number+"' data-company='"+data.company+"'><div class='col-md-12 bgc'><div class='row'><div class='col-md-7' style='margin:0px !important;'>"+data.time+"</div><div class='col-md-5' style='margin:0px !important;'>"+data.latitude+", <br />"+data.longitude+"</div></div><div class='row'><div class='col-md-8 lastupdatedon'>Data Updated On: "+data.portaltime+"</div></div></div></a>";
+                    }
+                    $("#history_popup").show('slow');
+                    $("#history_popup").html(listmenus);
                     
-                	console.log("lat: " + history_lat + " " + "long: " + history_lng);
-                	
-                	addmarkeronmouseover(address, history_lat, history_lng, map);
-                });
+                    $('.historydata').on("click",function() 
+                    { 
+                        var history_lat = $(this).attr("data-lattt");
+                        var history_lng = $(this).attr("data-longgg");
+                        var history_unit = $(this).attr("data-unit");
+                        var type = $(this).attr("data-company");
+                        var address = $(this).attr("data-address");
+                    	var latLng = new google.maps.LatLng(history_lat,history_lng);
+                        addMarker(latLng,address);
+                    });
+                }
 			},
 			error : function(request,error)
 			{
@@ -472,10 +538,11 @@ function initMap()
 	
 	$('input[name="daterange"]').on('apply.daterangepicker', function(ev, picker) 
     {
-        $("#voyager-loader").show();
         $("#loadinstatus").show('slow');
+        $(".loadermap").show();
+	    $("#history_popup").hide('slow');
 	    $("#mapCanvas").css("opacity", "0.3");
-        var unit_number = $("#trailers").find("option:selected").text();
+        var unit_number = $("#trailers").find("option:selected").val();
         if(unit_number == "")
         {
             unit_number = $(this).attr("data-selected-unit");
@@ -500,33 +567,33 @@ function initMap()
                     $("#loadinstatus").text('Sorry, no data found in this date range!');
                     $("#mapCanvas").css("opacity", "0.3");
 			        $("#showdaterange").show('slow');
+			        $(".loadermap").hide();
 			        return false;
-                }
-                $("#voyager-loader").hide();
-                $("#loadinstatus").hide('slow');
-			    $("#mapCanvas").css("opacity", "1");
-			    $("#showdaterange").show('slow');
-                polyline(json);
-                var listmenus = "<span id='unitselection'>#"+unit_number+"</span> <br />";
-                for (var t = 0; t < json.length; t++){
-                    data = json[t];
-                    listmenus += "<a href='javascript:void(0);' class='historydata' data-address='"+data.address+"' data-lattt='"+data.latitude+"' data-longgg='"+data.longitude+"' data-unit='"+data.unit_number+"' data-company='"+data.company+"'><div class='col-md-12 bgc'><div class='row'><div class='col-md-4' style='margin:0px !important;'>"+data.time+"</div></div></div></a>";
-                }
-                $("#history_popup").show('slow');
-                $("#history_popup").html(listmenus);
-                
-                $('.historydata').on("click",function() 
-                { 
-                    var history_lat = $(this).attr("data-lattt");
-                    var history_lng = $(this).attr("data-longgg");
-                    var history_unit = $(this).attr("data-unit");
-                    var type = $(this).attr("data-company");
-                    var address = $(this).attr("data-address");
+                }else{
+                    $("#loadinstatus").hide('slow');
+    			    $("#mapCanvas").css("opacity", "1");
+    			    $("#showdaterange").show('slow');
+    			    $(".loadermap").hide();
+                    polyline(json);
+                    var listmenus = "<span id='unitselection'>#"+unit_number+"</span> <br />";
+                    for (var t = 0; t < json.length; t++){
+                        data = json[t];
+                        listmenus += "<a href='javascript:void(0);' class='historydata' data-address='"+data.address+"' data-lattt='"+data.latitude+"' data-longgg='"+data.longitude+"' data-unit='"+data.unit_number+"' data-company='"+data.company+"'><div class='col-md-12 bgc'><div class='row'><div class='col-md-7' style='margin:0px !important;'>"+data.time+"</div><div class='col-md-5' style='margin:0px !important;'>"+data.latitude+", <br />"+data.longitude+"</div></div><div class='row'><div class='col-md-8 lastupdatedon'>Data Updated On: "+data.portaltime+"</div></div></div></a>";
+                    }
+                    $("#history_popup").show('slow');
+                    $("#history_popup").html(listmenus);
                     
-                	console.log("lat: " + history_lat + " " + "long: " + history_lng);
-                	
-                	addmarkeronmouseover(address, history_lat, history_lng, map);
-                });
+                    $('.historydata').on("click",function() 
+                    { 
+                        var history_lat = $(this).attr("data-lattt");
+                        var history_lng = $(this).attr("data-longgg");
+                        var history_unit = $(this).attr("data-unit");
+                        var type = $(this).attr("data-company");
+                        var address = $(this).attr("data-address");
+                    	var latLng = new google.maps.LatLng(history_lat,history_lng);
+                        addMarker(latLng,address);
+                    });
+                }
             },
             error: function(xhr, desc, err) {
                 console.log(xhr);
@@ -604,7 +671,6 @@ function bindInfoWindow(marker, map, infoWindow)
 }
 
 function doNothing() {}
-google.maps.event.addDomListener(window, 'load', initMap);
 
 function xmlParse(str) 
 {
@@ -648,7 +714,7 @@ function polyline(json)
     var mapOptions = {
         center: new google.maps.LatLng(json[0].latitude, json[0].longitude),
         zoom: 7,
-        mapTypeId: google.maps.MapTypeId.ROADMAP
+        mapTypeId: google.maps.MapTypeId.SATELLITE
     };
     map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
 
@@ -725,6 +791,7 @@ function closeLastOpenedInfoWindow(infoWindow)
     return infoWindow.close();
 }
 
+var currWindow = false; 
 function infoBox(map, marker, data) 
 {
     var address;
@@ -734,7 +801,12 @@ function infoBox(map, marker, data)
 	var html = '<div class="infowindow scrollFix"> <div class="row"><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Unit Number:</strong> </div><div class="col-md-4">#'+data.unit_number+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Time:</strong> </div><div class="col-md-4">'+data.time+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Address:</strong> </div><div class="col-md-4">'+address+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Latitude: </strong></div><div class="col-md-4">'+data.latitude+'</div></div><div class="row col-md-12" style="margin-bottom:0px;"><div class="col-md-4"><strong>Longitude: </strong></div><div class="col-md-4">'+data.longitude+'</div></div></div></div>';
 	google.maps.event.addListener(marker, "click", function(e) 
 	{
-	    closeLastOpenedInfoWindow(infoWindow) 
+	    if( currWindow ) 
+	    {
+           currWindow.close();
+        }
+        
+        currWindow = infoWindow;
 	    infoWindow.setContent(html);
 		infoWindow.open(map, marker);
 	});
@@ -799,8 +871,9 @@ function getUnitHistory(unit_number,latitude,longitude,map)
 {
     var bounds = new google.maps.LatLngBounds();
 	var ajaxurl = "<?php echo route('voyager.getlocations', ['"+unit_number+"']); ?>";
-	$("#voyager-loader").show();
 	$("#loadinstatus").show('slow');
+	$(".loadermap").show();
+	$("#history_popup").hide('slow');
 	$("#mapCanvas").css("opacity", "0.3");
 	$.ajax({
 		url : ajaxurl,
@@ -817,8 +890,8 @@ function getUnitHistory(unit_number,latitude,longitude,map)
                 return false;
             }
             $('input[name="daterange"]').attr("data-selected-unit", unit_number);
-            $("#voyager-loader").hide();
 		    $("#loadinstatus").hide('slow');
+		    $(".loadermap").hide();
 		    $("#mapCanvas").css("opacity", "1");
 		    $("#showdaterange").show('slow');
 			polyline(json);
@@ -826,7 +899,7 @@ function getUnitHistory(unit_number,latitude,longitude,map)
             for (var t = 0; t < json.length; t++)
             {
                 data = json[t];
-                listmenus += "<a href='javascript:void(0);' class='historydata' data-address='"+data.address+"' data-lattt='"+data.latitude+"' data-longgg='"+data.longitude+"' data-unit='"+data.unit_number+"' data-company='"+data.company+"'><div class='col-md-12 bgc'><div class='row'><div class='col-md-4' style='margin:0px !important;'>"+data.time+"</div></div></div></a>";
+                listmenus += "<a href='javascript:void(0);' class='historydata' data-address='"+data.address+"' data-lattt='"+data.latitude+"' data-longgg='"+data.longitude+"' data-unit='"+data.unit_number+"' data-company='"+data.company+"'><div class='col-md-12 bgc'><div class='row'><div class='col-md-7' style='margin:0px !important;'>"+data.time+"</div><div class='col-md-5' style='margin:0px !important;'>"+data.latitude+", <br />"+data.longitude+"</div></div><div class='row'><div class='col-md-8 lastupdatedon'>Data Updated On: "+data.portaltime+"</div></div></div></a>";
             }
             $("#history_popup").show('slow');
             $("#history_popup").html(listmenus);
@@ -838,10 +911,8 @@ function getUnitHistory(unit_number,latitude,longitude,map)
                 var history_unit = $(this).attr("data-unit");
                 var type = $(this).attr("data-company");
                 var address = $(this).attr("data-address");
-                
-            	console.log("lat: " + history_lat + " " + "long: " + history_lng);
-            	
-            	addmarkeronmouseover(address, history_lat, history_lng, map);
+            	var latLng = new google.maps.LatLng(history_lat,history_lng);
+                addMarker(latLng,address);
             });
 		},
 		error : function(request,error)
@@ -854,7 +925,7 @@ function getUnitHistory(unit_number,latitude,longitude,map)
 	longitude = parseFloat(longitude);
 	var position = new google.maps.LatLng(latitude, longitude);
 	map.setCenter(position);
-	smoothZoom(map, 4, map.getZoom());
+	smoothZoom(map, 2, map.getZoom());
 }
 
 function convertTZ(date, tzString) {
@@ -863,55 +934,58 @@ function convertTZ(date, tzString) {
 
 function addmarkeronmouseover(address,lat, long, map)
 {
-    var pinColor = "FE7569";
-	var pinImage = new google.maps.MarkerImage("http://labs.google.com/ridefinder/images/mm_20_red.png" + pinColor,
-    new google.maps.Size(14, 21),
-    new google.maps.Point(0,0),
-    new google.maps.Point(10, 21));
     var latLng = new google.maps.LatLng(lat,long);
     addMarker(latLng,address);
 }
 
+var marker;
 function addMarker(location,address) 
 {
     var infowindow = new google.maps.InfoWindow({
-      size: new google.maps.Size(150, 50)
+      size: new google.maps.Size(150, 150)
     });
+
+     //Remove previous Marker.
+    if (marker != null) {
+        marker.setMap(null);
+    }
+    
     marker = new google.maps.Marker({
         position: location,
         map: map
     });
+    
+    
     google.maps.event.addListener(marker, 'click', function() {
         infowindow.setContent("Location: " + address);
         infowindow.open(map, marker);
     });
     map.setCenter(marker.getPosition());
-    smoothZoom(map, 12, map.getZoom());
+    smoothZoom(map, 18, map.getZoom());
 }
 </script>
-<script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-<script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
+<script type="text/javascript" src="{{ asset('public/trackerscripts/js/moment.js') }}"></script>
+<script type="text/javascript" src="{{ asset('public/trackerscripts/js/drp.js') }}"></script>
 <script>
 jQuery(document).ready(function($) 
 {
     var date = new Date();
-    var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    var end = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    var today = moment().startOf('hour');
+    var end = moment().startOf('hour').add(32, 'hour');
     $('input[name="daterange"]').daterangepicker({
         timePicker: true,
-        timePickerIncrement: 30,
+        timePickerIncrement: 5,
+        timePicker24Hour: true,
         locale: {
-            format: 'YYYY-MM-DD hh:mm:ss'
+            format: 'YYYY-MM-DD HH:mm:ss'
         },
         todayHighlight: true,
         startDate: today,
         endDate: end,
-        autoclose: true
+        autoclose: true,
     });
     
     $(".infowindowall").parents("div.gm-style-iw").addClass("customwidth");
 });
 </script>
-
-<script async defer src="https://maps.googleapis.com/maps/api/js?key={{$google_api_key}}&libraries=geometry&callback=initMap"></script>
 @stop
